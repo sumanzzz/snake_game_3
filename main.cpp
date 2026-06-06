@@ -4,8 +4,11 @@
 #include <queue>
 #include <algorithm>
 
-const int screenWidth = 800;
-const int screenHeight = 450;
+//const int screenWidth = 800;
+//const int screenHeight = 450;
+
+const int screenWidth = 1200;
+const int screenHeight = 1000;
 
 const int ROWS = 20;
 const int COLS = 20;
@@ -155,6 +158,8 @@ int main()
     // Main game loop
     generateFood();
     bool gameOver = false;
+    int playerScore = 0, reaperScore = 0;
+    std::string winner;
     while (!WindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
@@ -177,16 +182,17 @@ int main()
             auto reaperMove = reaperNextmove();
             int reaperRow = reaperMove.first;
             int reaperCol = reaperMove.second;
-
-            if (reaperRow == foodRow && reaperCol == foodCol) {
-                reaperAI.push_back({ reaperRow ,reaperCol });
-                generateFood();
+            if (!gameOver) {
+                if (reaperRow == foodRow && reaperCol == foodCol) {
+                    reaperAI.push_back({ reaperRow ,reaperCol });
+                    reaperScore++;
+                    generateFood();
+                }
+                else {
+                    reaperAI.push_back({ reaperRow , reaperCol });
+                    reaperAI.erase(reaperAI.begin());
+                }
             }
-            else {
-                reaperAI.push_back({ reaperRow , reaperCol });
-                reaperAI.erase(reaperAI.begin());
-            }
-           
             switch (dir)
             {
             case UP: newRow++;
@@ -210,15 +216,30 @@ int main()
                     gameOver = true;
                 }
             }
+            for (auto segment : reaperAI) {
+                if (segment.first == newRow && segment.second == newCol) {
+                    gameOver = true;
+                }
+            }
+            if (reaperScore == 20 || playerScore == 20) {
+                gameOver = true;
+            }
             if (!gameOver) {
                 if (newRow == foodRow && newCol == foodCol) {
                     snake.push_back({ newRow , newCol });
+                    playerScore++;
                     generateFood();
                 }
                 else {
                     snake.push_back({ newRow , newCol });
                     snake.erase(snake.begin());
                 }
+            }
+            if (gameOver) {
+                if (reaperScore > playerScore) {
+                    winner = "Reaper";
+                }
+                else winner = "Player";
             }
             
             
@@ -250,8 +271,12 @@ int main()
         
 
         EndMode3D();
+        DrawText(TextFormat("Reaper : %d", reaperScore), screenWidth/2, 5, 20, RED);
+        DrawText(TextFormat("Player : %d", playerScore), screenWidth/2, 25, 20, RED);
+
         if (gameOver) {
-            DrawText("GAME OVER", 300, 300, 40, RED);
+            DrawText("GAME OVER", screenWidth/2, screenHeight/2, 60, RED);
+            DrawText(TextFormat("Winner : %s", winner.c_str()), screenWidth /2 ,  50,35, MAROON);
         }
 
         
