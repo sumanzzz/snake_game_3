@@ -5,8 +5,31 @@
 const int screenWidth = 800;
 const int screenHeight = 450;
 
-const int ROWS = 25;
-const int COLS = 25;
+const int ROWS = 20;
+const int COLS = 20;
+void grid() {
+    for (int i = 0; i <= 20; i++) {
+        DrawLine3D(
+            { (float)i, 0.01f, 0.0f },
+            { (float)i, 0.01f, 20.0f },
+            BLACK
+        );
+
+        DrawLine3D(
+            { 0.0f, 0.01f, (float)i },
+            { 20.0f, 0.01f, (float)i },
+            BLACK
+        );
+    }
+}
+enum Direction
+{
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+};
+Direction dir;
 
 int main()
 {
@@ -18,8 +41,8 @@ int main()
 
     // Define the camera to look into our 3d world
     Camera3D camera = { 0 };
-    camera.position = { 0.0f,20.0f, 0.1f }; // Camera position
-    camera.target = { 0.0f, 0.0f, 0.0f };      // Camera looking at point
+    camera.position = { 10.0f, 20.0f, 30.0f };
+    camera.target = { 10.0f, 0.0f, 10.0f };     // Camera looking at point
     camera.up = { 0.0f, 0.0f, -1.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
@@ -37,16 +60,43 @@ int main()
     SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
+    double lastMoveTime = GetTime();
     // Main game loop
     while (!WindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_FREE);
+        /*UpdateCamera(&camera, CAMERA_FREE);
 
-        if (IsKeyPressed(KEY_Z)) camera.target = { 0.0f, 0.0f, 0.0f };
+        if (IsKeyPressed(KEY_Z)) camera.target = { 0.0f, 0.0f, 0.0f };*/
         //----------------------------------------------------------------------------------
+        if (IsKeyPressed(KEY_W) && dir != DOWN) dir = UP;
+        if (IsKeyPressed(KEY_S) && dir != UP) dir = DOWN;
+        if (IsKeyPressed(KEY_A) && dir != RIGHT) dir = LEFT;
+        if (IsKeyPressed(KEY_D) && dir != LEFT) dir = RIGHT;
+        
+        if (GetTime() - lastMoveTime > 0.1) {
+            float newRow = snake.back().first;
+            float newCol = snake.back().second ;
 
+            switch (dir)
+            {
+            case UP: newRow--;
+                break;
+            case DOWN:newRow++;
+                break;
+            case LEFT:newCol--;
+                break;
+            case RIGHT:newCol++;
+                break;
+            default:
+                break;
+            }
+            snake.push_back({ newRow , newCol });
+            snake.erase(snake.begin());
+            
+            lastMoveTime = GetTime();
+        }
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
@@ -55,10 +105,14 @@ int main()
 
         BeginMode3D(camera);
 
-        DrawPlane({ 0.0f , 0.0f , 0.0f }, { 20.f , 20.f }, DARKGREEN);
-        DrawGrid(20, 1.0f);
+        DrawPlane({ 10.0f , 0.0f , 10.0f }, { 20.f , 20.f }, DARKGREEN);
+        grid();
+        
         for (auto segment : snake) {
-            DrawCube({ segment.first + 0.5f , 0.15f , segment.second + 0.5f}, 1.0f, 0.3f, 1.0f, RED);
+            DrawCube({ segment.first + 0.5f , 0.15f , segment.second + 0.5f }, 1.0f, 0.3f, 1.0f, RED);
+        }
+        for (auto segment : snake) {
+            DrawCubeWires({ segment.first + 0.5f , 0.15f , segment.second + 0.5f }, 1.0f, 0.3f, 1.0f, WHITE);
         }
         
 
