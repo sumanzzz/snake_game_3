@@ -1,6 +1,8 @@
 #include <iostream>
 #include "raylib.h"
 #include <vector>
+#include <queue>
+#include <algorithm>
 
 const int screenWidth = 800;
 const int screenHeight = 450;
@@ -8,6 +10,89 @@ const int screenHeight = 450;
 const int ROWS = 20;
 const int COLS = 20;
 
+float foodRow, foodCol;
+
+std::vector<std::vector<int>> Board(ROWS, std::vector<int>(COLS, 0));
+std::vector<std::pair<float, float>> snake
+{
+    {5,3},
+    {5,4},
+    {5,5}
+};
+std::vector<std::pair<float, float>> reaperAI
+{
+    {10,3},
+    {10,4},
+    {10,5}
+};
+#pragma region AI
+std::pair<int , int> reaperNextmove() {
+    std::vector<std::vector<int>> Blocked(ROWS, std::vector<int>(COLS, 0));
+    for (auto segment : snake) {
+        Blocked[segment.first][segment.second] = 1;
+    }
+    for (int i = 0; i < reaperAI.size() - 1; i++) {
+        Blocked[reaperAI[i].first][reaperAI[i].second] = 1;
+    }
+
+    // BFS
+    std::queue<std::pair<int, int>> q;
+    std::vector<std::vector<int>> visited(ROWS, std::vector<int>(COLS, 0));
+    std::vector<std::vector<std::pair<int, int>>> parent(ROWS, std::vector <std::pair<int, int>>(COLS, { -1 , -1 }));
+
+    auto head = reaperAI.back();
+    q.push(head);
+    visited[head.first][head.second] = 1;
+
+    std::vector<int> neighborRow = { -1 , 1 ,0 , 0 };
+    std::vector<int> neighborCol = { 0 , 0 ,-1 , 1 };
+
+    while (!q.empty()) {
+        auto [row, col] = q.front();
+        q.pop();
+
+        if (row == foodRow && col == foodCol) break;
+        
+        for (int i = 0; i < 4; i++) {
+            int nr = row + neighborRow[i];
+            int nc = col + neighborCol[i];
+
+            if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+
+            if (Blocked[nr][nc] == 1) continue;
+
+            if (visited[nr][nc] == 1) continue;
+
+            visited[nr][nc] = 1;
+
+            parent[nr][nc] = { row , col };
+
+            q.push({ nr , nc });
+        }
+        
+    }
+    if (!visited[foodRow][foodCol]) {
+        return reaperAI.back();
+    }
+    std::vector<std::pair<int, int>> path;
+    std::pair<int, int> current = { foodRow , foodCol };
+
+    while (current != reaperAI.back()) {
+        path.push_back(current);
+        current = parent[current.first][current.second];
+    }
+    path.push_back(reaperAI.back());
+    std::reverse(path.begin(), path.end());
+
+    if (path.size() > 1) {
+        return path[1];
+    }
+
+    return reaperAI.back();
+}
+
+
+#pragma endregion
 enum Direction
 {
     UP,
@@ -19,7 +104,7 @@ Direction dir;
 
 
 
-float foodRow, foodCol;
+
 void generateFood() {
     foodRow = rand() % ROWS;
     foodCol = rand() % COLS;
@@ -41,7 +126,7 @@ void grid() {
     }
 }
 
-
+#pragma region MAIN
 int main()
 {
     
@@ -59,13 +144,8 @@ int main()
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
     Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
-    std::vector<std::vector<int>> Board(ROWS, std::vector<int>(COLS, 0));
-    std::vector<std::pair<float, float>> snake
-    {
-        {5,3},
-        {5,4},
-        {5,5}
-    };
+    
+    
     DisableCursor();                    // Limit cursor to relative movement inside the window
 
     SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
@@ -94,6 +174,18 @@ int main()
             float newRow = snake.back().first;
             float newCol = snake.back().second;
             
+            auto reaperMove = reaperNextmove();
+            int reaperRow = reaperMove.first;
+            int reaperCol = reaperMove.second;
+
+            if (reaperRow == foodRow && reaperCol == foodCol) {
+                reaperAI.push_back({ reaperRow ,reaperCol });
+                generateFood();
+            }
+            else {
+                reaperAI.push_back({ reaperRow , reaperCol });
+                reaperAI.erase(reaperAI.begin());
+            }
            
             switch (dir)
             {
@@ -149,6 +241,12 @@ int main()
         for (auto segment : snake) {
             DrawCubeWires({ segment.first + 0.5f , 0.15f , segment.second + 0.5f }, 1.0f, 0.3f, 1.0f, WHITE);
         }
+        for (auto segment : reaperAI) {
+            DrawCube({ segment.first + 0.5f , 0.15f , segment.second + 0.5f }, 1.0f, 0.3f, 1.0f, BLUE);
+        }
+        for (auto segment : reaperAI) {
+            DrawCubeWires({ segment.first + 0.5f , 0.15f , segment.second + 0.5f }, 1.0f, 0.3f, 1.0f, WHITE);
+        }
         
 
         EndMode3D();
@@ -169,3 +267,4 @@ int main()
 
     return 0;
 }
+#pragma endregion
