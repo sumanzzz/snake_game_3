@@ -70,6 +70,7 @@ int main()
     double lastMoveTime = GetTime();
     // Main game loop
     generateFood();
+    bool gameOver = false;
     while (!WindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
@@ -101,17 +102,25 @@ int main()
             default:
                 break;
             }
-            if (newRow < 0 || newRow > ROWS || newCol < 0 || newCol > COLS) {
-                std::cout << "game over" << std::endl;
-                break;
+            if (newRow < 0 || newRow >= ROWS || newCol < 0 || newCol >= COLS) {
+                gameOver = true;
+                
+            
             }
-            if (newRow == foodRow && newCol == foodCol) {
-                snake.push_back({ newRow , newCol });
-                generateFood();
+            for (auto segment : snake) {
+                if (segment.first == newRow && segment.second == newCol) {
+                    gameOver = true;
+                }
             }
-            else {
-                snake.push_back({ newRow , newCol });
-                snake.erase(snake.begin());
+            if (!gameOver) {
+                if (newRow == foodRow && newCol == foodCol) {
+                    snake.push_back({ newRow , newCol });
+                    generateFood();
+                }
+                else {
+                    snake.push_back({ newRow , newCol });
+                    snake.erase(snake.begin());
+                }
             }
             
             
@@ -137,6 +146,9 @@ int main()
         
 
         EndMode3D();
+        if (gameOver) {
+            DrawText("GAME OVER", 300, 300, 40, RED);
+        }
 
         
 
