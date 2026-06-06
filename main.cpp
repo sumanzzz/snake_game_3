@@ -7,6 +7,13 @@ const int screenHeight = 450;
 
 const int ROWS = 20;
 const int COLS = 20;
+
+float foodRow, foodCol;
+void generateFood() {
+    foodRow = rand() % ROWS;
+    foodCol = rand() % COLS;
+
+}
 void grid() {
     for (int i = 0; i <= 20; i++) {
         DrawLine3D(
@@ -41,9 +48,9 @@ int main()
 
     // Define the camera to look into our 3d world
     Camera3D camera = { 0 };
-    camera.position = { 10.0f, 20.0f, 30.0f };
-    camera.target = { 10.0f, 0.0f, 10.0f };     // Camera looking at point
-    camera.up = { 0.0f, 0.0f, -1.0f };          // Camera up vector (rotation towards target)
+    camera.position = { -10.0f, 25.0f, 10.0f };
+    camera.target = { 10.0f, 0.0f, 10.0f };
+    camera.up = { 0.0f, 1.0f, 0.0f };// Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
@@ -59,9 +66,10 @@ int main()
 
     SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-
+    
     double lastMoveTime = GetTime();
     // Main game loop
+    generateFood();
     while (!WindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
@@ -70,6 +78,7 @@ int main()
 
         if (IsKeyPressed(KEY_Z)) camera.target = { 0.0f, 0.0f, 0.0f };*/
         //----------------------------------------------------------------------------------
+        
         if (IsKeyPressed(KEY_W) && dir != DOWN) dir = UP;
         if (IsKeyPressed(KEY_S) && dir != UP) dir = DOWN;
         if (IsKeyPressed(KEY_A) && dir != RIGHT) dir = LEFT;
@@ -78,12 +87,12 @@ int main()
         if (GetTime() - lastMoveTime > 0.1) {
             float newRow = snake.back().first;
             float newCol = snake.back().second ;
-
+           
             switch (dir)
             {
-            case UP: newRow--;
+            case UP: newRow++;
                 break;
-            case DOWN:newRow++;
+            case DOWN:newRow--;
                 break;
             case LEFT:newCol--;
                 break;
@@ -92,8 +101,19 @@ int main()
             default:
                 break;
             }
-            snake.push_back({ newRow , newCol });
-            snake.erase(snake.begin());
+            if (newRow < 0 || newRow > ROWS || newCol < 0 || newCol > COLS) {
+                std::cout << "game over" << std::endl;
+                break;
+            }
+            if (newRow == foodRow && newCol == foodCol) {
+                snake.push_back({ newRow , newCol });
+                generateFood();
+            }
+            else {
+                snake.push_back({ newRow , newCol });
+                snake.erase(snake.begin());
+            }
+            
             
             lastMoveTime = GetTime();
         }
@@ -107,7 +127,7 @@ int main()
 
         DrawPlane({ 10.0f , 0.0f , 10.0f }, { 20.f , 20.f }, DARKGREEN);
         grid();
-        
+        DrawCube({ foodRow + 0.5f , 0.5f , foodCol + 0.5f }, 1.0f, 0.3f, 1.0f, YELLOW);
         for (auto segment : snake) {
             DrawCube({ segment.first + 0.5f , 0.15f , segment.second + 0.5f }, 1.0f, 0.3f, 1.0f, RED);
         }
