@@ -8,6 +8,17 @@ const int screenHeight = 450;
 const int ROWS = 20;
 const int COLS = 20;
 
+enum Direction
+{
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+};
+Direction dir;
+
+
+
 float foodRow, foodCol;
 void generateFood() {
     foodRow = rand() % ROWS;
@@ -29,14 +40,7 @@ void grid() {
         );
     }
 }
-enum Direction
-{
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
-};
-Direction dir;
+
 
 int main()
 {
@@ -84,10 +88,12 @@ int main()
         if (IsKeyPressed(KEY_S) && dir != UP) dir = DOWN;
         if (IsKeyPressed(KEY_A) && dir != RIGHT) dir = LEFT;
         if (IsKeyPressed(KEY_D) && dir != LEFT) dir = RIGHT;
+
         
         if (GetTime() - lastMoveTime > 0.1) {
             float newRow = snake.back().first;
-            float newCol = snake.back().second ;
+            float newCol = snake.back().second;
+            
            
             switch (dir)
             {
@@ -102,7 +108,7 @@ int main()
             default:
                 break;
             }
-            if (newRow < 0 || newRow >= ROWS || newCol < 0 || newCol >= COLS) {
+            if (newRow < 0 || newRow >= ROWS || newCol <0 || newCol >= COLS) {
                 gameOver = true;
                 
             
@@ -136,7 +142,7 @@ int main()
 
         DrawPlane({ 10.0f , 0.0f , 10.0f }, { 20.f , 20.f }, DARKGREEN);
         grid();
-        DrawCube({ foodRow + 0.5f , 0.5f , foodCol + 0.5f }, 1.0f, 0.3f, 1.0f, YELLOW);
+        DrawSphere({ foodRow + 0.5f , 0.5f , foodCol + 0.5f }, 0.5f, YELLOW);
         for (auto segment : snake) {
             DrawCube({ segment.first + 0.5f , 0.15f , segment.second + 0.5f }, 1.0f, 0.3f, 1.0f, RED);
         }
@@ -151,7 +157,6 @@ int main()
         }
 
         
-
         
         EndDrawing();
         //----------------------------------------------------------------------------------
