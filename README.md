@@ -4,7 +4,7 @@ A 3D Snake game built with C++ and Raylib featuring a BFS-powered AI opponent na
 
 ## Demo
 
-![Snake Game 3 Demo](snake_game_demo.gif)
+![Snake Game 3 Demo](snake_game_3_demo.gif)
 
 ## Features
 
@@ -85,6 +85,4 @@ Snake Game 3
 * BFS-powered AI opponent
 * Competitive gameplay
 
-## License
 
-This project is open source and available under the MIT License.
